@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WGauto CRM</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            line-height: 1.6;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: #2d2d2d;
+            padding: 20px;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .nav-item {
+            padding: 12px 16px;
+            margin: 5px 0;
+            background: #3d3d3d;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 8px;
+            width: 100%;
+            text-align: left;
+            transition: background 0.3s;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: #4CAF50;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #3d3d3d;
+        }
+
+        .user-info {
+            color: #ccc;
+        }
+
+        .logout-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: #2d2d2d;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #4CAF50;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #ccc;
+            font-size: 14px;
+        }
+
+        .section {
+            display: none;
+            background: #2d2d2d;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .section-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #4CAF50;
+        }
+
+        .btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            background: #45a049;
+        }
+
+        .btn-danger {
+            background: #f44336;
+        }
+
+        .btn-danger:hover {
+            background: #da190b;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ccc;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background: #3d3d3d;
+            color: #fff;
+        }
+
+        .cars-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .car-card {
+            background: #3d3d3d;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .car-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .car-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .car-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .car-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-active { background: #4CAF50; }
+        .status-rented { background: #2196F3; }
+        .status-repair { background: #ff9800; }
+        .status-sold { background: #9e9e9e; }
+        .status-dismantled { background: #f44336; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: #2d2d2d;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 12px;
+            width: 80%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #fff;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .table th,
+        .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #555;
+        }
+
+        .table th {
+            background: #3d3d3d;
+            color: #4CAF50;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: #3d3d3d;
+            border: none;
+            color: #ccc;
+            cursor: pointer;
+            margin-right: 5px;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .tab.active {
+            background: #4CAF50;
+            color: #fff;
+        }
+
+        .tab-content {
+            display: none;
+            background: #3d3d3d;
+            padding: 20px;
+            border-radius: 0 8px 8px 8px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #1a1a1a;
+        }
+
+        .auth-form {
+            background: #2d2d2d;
+            padding: 40px;
+            border-radius: 12px;
+            width: 400px;
+            text-align: center;
+        }
+
+        .auth-title {
+            color: #4CAF50;
+            font-size: 32px;
+            margin-bottom: 30px;
+        }
+
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: #555;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .calendar-header {
+            background: #4CAF50;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .calendar-day {
+            background: #3d3d3d;
+            padding: 10px;
+            text-align: center;
+            min-height: 60px;
+            position: relative;
+        }
+
+        .calendar-day.other-month {
+            opacity: 0.3;
+        }
+
+        .rental-indicator {
+            position: absolute;
+            bottom: 2px;
+            left: 2px;
+            right: 2px;
+            height: 4px;
+            background: #2196F3;
+            border-radius: 2px;
+            font-size: 10px;
+        }
+
+        .profit-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .profit-card {
+            background: #3d3d3d;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .currency-label {
+            font-size: 12px;
+            color: #ccc;
+            margin-bottom: 5px;
+        }
+
+        .amount {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .amount.positive { color: #4CAF50; }
+        .amount.negative { color: #f44336; }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #ccc;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .container {
+                flex-direction: column;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .cars-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Authentication Screen -->
+    <div id="authScreen" class="auth-container">
+        <div class="auth-form">
+            <div class="auth-title">WGauto CRM</div>
+            
+            <div id="loginForm">
+                <h3 style="margin-bottom: 20px;">Login</h3>
+                <div class="form-group">
+                    <input type="email" id="loginEmail" placeholder="Email" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="loginPassword" placeholder="Password" required>
+                </div>
+                <button class="btn" onclick="login()">Login</button>
+                <p style="margin-top: 15px; color: #ccc;">
+                    Don't have an account? 
+                    <a href="#" onclick="showRegister()" style="color: #4CAF50;">Register</a>
+                </p>
+            </div>
+
+            <div id="registerForm" style="display: none;">
+                <h3 style="margin-bottom: 20px;">Register</h3>
+                <div class="form-group">
+                    <input type="email" id="registerEmail" placeholder="Email" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="registerPassword" placeholder="Password" required>
+                </div>
+                <button class="btn" onclick="register()">Register</button>
+                <p style="margin-top: 15px; color: #ccc;">
+                    Already have an account? 
+                    <a href="#" onclick="showLogin()" style="color: #4CAF50;">Login</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="appScreen" class="container" style="display: none;">
+        <div class="sidebar">
+            <div class="logo">WGauto CRM</div>
+            <button class="nav-item active" onclick="showSection('dashboard')">📊 Dashboard</button>
+            <button class="nav-item" onclick="showSection('cars')">🚗 Cars</button>
+            <button class="nav-item" onclick="showSection('rentals')">📅 Rentals</button>
+            <button class="nav-item" onclick="showSection('parts')">🔧 Parts</button>
+            <button class="nav-item" id="adminNav" onclick="showSection('admin')" style="display: none;">⚙️ Admin</button>
+        </div>
+
+        <div class="main-content">
+            <div class="header">
+                <h1 id="pageTitle">Dashboard</h1>
+                <div class="user-info">
+                    <span id="userEmail"></span>
+                    <button class="logout-btn" onclick="logout()">Logout</button>
+                </div>
+            </div>
+
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="section active">
+                <div class="stats-grid" id="statsGrid">
+                    <!-- Stats will be loaded here -->
+                </div>
+                
+                <div class="section-title">Recent Transactions</div>
+                <table class="table" id="recentTransactions">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Car</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <!-- Cars Section -->
+            <div id="cars" class="section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <div class="section-title">Cars</div>
+                    <button class="btn" onclick="showAddCarModal()">+ Add Car</button>
+                </div>
+                
+                <!-- Car Search -->
+                <div style="margin-bottom: 20px;">
+                    <input type="text" id="carSearch" placeholder="Search by brand, model, VIN..." 
+                           style="width: 300px; padding: 10px; border: 1px solid #555; border-radius: 4px; background: #3d3d3d; color: #fff;"
+                           oninput="searchCars()">
+                    <select id="carStatusFilter" onchange="filterCars()" 
+                            style="margin-left: 10px; padding: 10px; border: 1px solid #555; border-radius: 4px; background: #3d3d3d; color: #fff;">
+                        <option value="">All Statuses</option>
+                        <option value="active">Active</option>
+                        <option value="rented">Rented</option>
+                        <option value="repair">Repair</option>
+                        <option value="sold">Sold</option>
+                        <option value="dismantled">Dismantled</option>
+                    </select>
+                </div>
+                
+                <div class="cars-grid" id="carsGrid">
+                    <!-- Cars will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Rentals Section -->
+            <div id="rentals" class="section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <div class="section-title">Rentals</div>
+                    <button class="btn" onclick="showAddRentalModal()">+ New Rental</button>
+                </div>
+
+                <div class="tabs">
+                    <button class="tab active" onclick="showRentalTab('active')">Active Rentals</button>
+                    <button class="tab" onclick="showRentalTab('calendar')">Calendar</button>
+                    <button class="tab" onclick="showRentalTab('history')">History</button>
+                </div>
+
+                <div id="activeRentals" class="tab-content active">
+                    <table class="table" id="activeRentalsTable">
+                        <thead>
+                            <tr>
+                                <th>Car</th>
+                                <th>Client</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Daily Price</th>
+                                <th>Total</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div id="rentalCalendar" class="tab-content">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <button class="btn" onclick="changeMonth(-1)">‹ Previous</button>
+                        <h3 id="calendarTitle"></h3>
+                        <button class="btn" onclick="changeMonth(1)">Next ›</button>
+                    </div>
+                    <div id="calendar" class="calendar"></div>
+                </div>
+
+                <div id="rentalHistory" class="tab-content">
+                    <table class="table" id="historyTable">
+                        <thead>
+                            <tr>
+                                <th>Car</th>
+                                <th>Client</th>
+                                <th>Period</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Parts Section -->
+            <div id="parts" class="section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <div class="section-title">Parts Inventory</div>
+                    <button class="btn" onclick="showAddPartModal()">+ Add Part</button>
+                </div>
+                
+                <!-- Parts Search -->
+                <div style="margin-bottom: 20px;">
+                    <input type="text" id="partSearch" placeholder="Search parts by name, car model..." 
+                           style="width: 300px; padding: 10px; border: 1px solid #555; border-radius: 4px; background: #3d3d3d; color: #fff;"
+                           oninput="searchParts()">
+                    <select id="partStatusFilter" onchange="filterParts()" 
+                            style="margin-left: 10px; padding: 10px; border: 1px solid #555; border-radius: 4px; background: #3d3d3d; color: #fff;">
+                        <option value="">All Statuses</option>
+                        <option value="available">Available</option>
+                        <option value="sold">Sold</option>
+                    </select>
+                    <select id="partCurrencyFilter" onchange="filterParts()" 
+                            style="margin-left: 10px; padding: 10px; border: 1px solid #555; border-radius: 4px; background: #3d3d3d; color: #fff;">
+                        <option value="">All Currencies</option>
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                        <option value="GEL">GEL</option>
+                    </select>
+                </div>
+                
+                <table class="table" id="partsTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Source Car</th>
+                            <th>Price</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <!-- Admin Section -->
+            <div id="admin" class="section">
+                <div class="section-title">Admin Panel</div>
+                <table class="table" id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Registered</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    
+    <!-- Add Car Modal -->
+    <div id="addCarModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('addCarModal')">&times;</span>
+            <h2>Add New Car</h2>
+            <div class="form-group">
+                <label>Brand</label>
+                <input type="text" id="carBrand" required>
+            </div>
+            <div class="form-group">
+                <label>Model</label>
+                <input type="text" id="carModel" required>
+            </div>
+            <div class="form-group">
+                <label>Year</label>
+                <input type="number" id="carYear" min="1950" max="2030">
+            </div>
+            <div class="form-group">
+                <label>VIN</label>
+                <input type="text" id="carVin">
+            </div>
+            <div class="form-group">
+                <label>Purchase Price</label>
+                <input type="number" id="carPrice" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label>Currency</label>
+                <select id="carCurrency" required>
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="GEL">GEL (₾)</option>
+                </select>
+            </div>
+            <button class="btn" onclick="addCar()">Add Car</button>
+        </div>
+    </div>
+
+    <!-- Car Details Modal -->
+    <div id="carDetailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('carDetailsModal')">&times;</span>
+            <h2 id="carDetailsTitle">Car Details</h2>
+            
+            <div class="tabs">
+                <button class="tab active" onclick="showCarTab('info')">Info</button>
+                <button class="tab" onclick="showCarTab('finances')">Finances</button>
+                <button class="tab" onclick="showCarTab('dismantling')">Dismantling</button>
+                <button class="tab" onclick="showCarTab('rentals')">Rental History</button>
+            </div>
+
+            <div id="carInfo" class="tab-content active">
+                <div id="carInfoContent"></div>
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-danger" onclick="dismantleCar()">🔧 Dismantle Car</button>
+                </div>
+            </div>
+
+            <div id="carFinances" class="tab-content">
+                <div class="profit-summary" id="carProfitSummary"></div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px;">
+                    <div>
+                        <h3>Add Expense</h3>
+                        <div class="form-group">
+                            <label>Amount</label>
+                            <input type="number" id="expenseAmount" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Currency</label>
+                            <select id="expenseCurrency" required>
+                                <option value="USD">USD ($)</option>
+                                <option value="EUR">EUR (€)</option>
+                                <option value="GEL">GEL (₾)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Category</label>
+                            <select id="expenseCategory" required>
+                                <option value="repair">Repair</option>
+                                <option value="fuel">Fuel</option>
+                                <option value="insurance">Insurance</option>
+                                <option value="maintenance">Maintenance</option>
+                                <option value="parking">Parking</option>
+                                <option value="wash">Car Wash</option>
+                                <option value="parts">Parts Purchase</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <input type="text" id="expenseDescription" placeholder="Optional description">
+                        </div>
+                        <button class="btn" onclick="addExpense()">Add Expense</button>
+                    </div>
+                    
+                    <div>
+                        <h3>Recent Expenses</h3>
+                        <div id="recentExpenses" style="max-height: 200px; overflow-y: auto;">
+                            <!-- Recent expenses will be shown here -->
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 30px;">Transaction History</h3>
+                <table class="table" id="carTransactions">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <div id="carDismantling" class="tab-content">
+                <div class="profit-summary" id="partsProfitSummary"></div>
+                <div id="carPartsList"></div>
+            </div>
+
+            <div id="carRentals" class="tab-content">
+                <table class="table" id="carRentalsTable">
+                    <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>Period</th>
+                            <th>Daily Price</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Rental Modal -->
+    <div id="addRentalModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('addRentalModal')">&times;</span>
+            <h2>New Rental</h2>
+            <div class="form-group">
+                <label>Car</label>
+                <select id="rentalCar" required>
+                    <option value="">Select a car...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Client Name</label>
+                <input type="text" id="rentalClient" required>
+            </div>
+            <div class="form-group">
+                <label>Client Phone</label>
+                <input type="tel" id="rentalPhone">
+            </div>
+            <div class="form-group">
+                <label>Start Date</label>
+                <input type="date" id="rentalStart" required>
+            </div>
+            <div class="form-group">
+                <label>End Date</label>
+                <input type="date" id="rentalEnd" required>
+            </div>
+            <div class="form-group">
+                <label>Daily Price</label>
+                <input type="number" id="rentalPrice" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label>Currency</label>
+                <select id="rentalCurrency" required>
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="GEL">GEL (₾)</option>
+                </select>
+            </div>
+            <button class="btn" onclick="addRental()">Create Rental</button>
+        </div>
+    </div>
+
+    <!-- Add Part Modal -->
+    <div id="addPartModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('addPartModal')">&times;</span>
+            <h2>Add Part</h2>
+            <div class="form-group">
+                <label>Source Car</label>
+                <select id="partCar" required>
+                    <option value="">Select dismantled car...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Part Name</label>
+                <input type="text" id="partName" required>
+            </div>
+            <div class="form-group">
+                <label>Sale Price</label>
+                <input type="number" id="partPrice" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label>Currency</label>
+                <select id="partCurrency" required>
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="GEL">GEL (₾)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Storage Location</label>
+                <input type="text" id="partLocation">
+            </div>
+            <button class="btn" onclick="addPart()">Add Part</button>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentUser = null;
+        let currentCarId = null;
+        let currentDate = new Date();
+        let allCars = [];
+        let allParts = [];
+        let filteredCars = [];
+        let filteredParts = [];
+
+        // Authentication functions
+        function showLogin() {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('registerForm').style.display = 'none';
+        }
+
+        function showRegister() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+        }
+
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('token', data.token);
+                    currentUser = data.user;
+                    showApp();
+                } else {
+                    const error = await response.json();
+                    alert('Login failed: ' + error.error);
+                }
+            } catch (error) {
+                alert('Login error: ' + error.message);
+            }
+        }
+
+        async function register() {
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('token', data.token);
+                    currentUser = data.user;
+                    showApp();
+                } else {
+                    const error = await response.json();
+                    alert('Registration failed: ' + error.error);
+                }
+            } catch (error) {
+                alert('Registration error: ' + error.message);
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            currentUser = null;
+            document.getElementById('authScreen').style.display = 'flex';
+            document.getElementById('appScreen').style.display = 'none';
+        }
+
+        function showApp() {
+            document.getElementById('authScreen').style.display = 'none';
+            document.getElementById('appScreen').style.display = 'flex';
+            document.getElementById('userEmail').textContent = currentUser.email;
+            
+            if (currentUser.role === 'ADMIN') {
+                document.getElementById('adminNav').style.display = 'block';
+            }
+            
+            loadDashboard();
+        }
+
+        // API helper function
+        async function apiCall(endpoint, options = {}) {
+            const token = localStorage.getItem('token');
+            const defaultOptions = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            };
+
+            const response = await fetch(endpoint, { ...defaultOptions, ...options });
+            
+            if (response.status === 401) {
+                logout();
+                return null;
+            }
+
+            return response;
+        }
+
+        // Navigation functions
+        function showSection(sectionName) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => section.classList.remove('active'));
+            
+            // Hide all nav items active state
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => item.classList.remove('active'));
+            
+            // Show selected section
+            document.getElementById(sectionName).classList.add('active');
+            event.target.classList.add('active');
+            
+            // Update page title
+            const titles = {
+                dashboard: 'Dashboard',
+                cars: 'Cars',
+                rentals: 'Rentals',
+                parts: 'Parts Inventory',
+                admin: 'Admin Panel'
+            };
+            document.getElementById('pageTitle').textContent = titles[sectionName];
+
+            // Load section data
+            switch(sectionName) {
+                case 'dashboard':
+                    loadDashboard();
+                    break;
+                case 'cars':
+                    loadCars();
+                    break;
+                case 'rentals':
+                    loadRentals();
+                    break;
+                case 'parts':
+                    loadParts();
+                    break;
+                case 'admin':
+                    loadUsers();
+                    break;
+            }
+        }
+
+        // Dashboard functions
+        async function loadDashboard() {
+            try {
+                const response = await apiCall('/api/stats/dashboard');
+                if (!response) return;
+
+                const data = await response.json();
+                
+                // Create stats grid
+                let statsHTML = '';
+                
+                // Income cards
+                const currencies = ['USD', 'EUR', 'GEL'];
+                const currencySymbols = { USD: '$', EUR: '€', GEL: '₾' };
+                
+                currencies.forEach(currency => {
+                    const income = data.income.find(i => i.currency === currency);
+                    const expense = data.expenses.find(e => e.currency === currency);
+                    
+                    const incomeAmount = income ? parseFloat(income.total) : 0;
+                    const expenseAmount = expense ? parseFloat(expense.total) : 0;
+                    
+                    statsHTML += `
+                        <div class="stat-card">
+                            <div class="stat-value">${currencySymbols[currency]}${incomeAmount.toFixed(2)}</div>
+                            <div class="stat-label">Income ${currency}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${currencySymbols[currency]}${expenseAmount.toFixed(2)}</div>
+                            <div class="stat-label">Expenses ${currency}</div>
+                        </div>
+                    `;
+                });
+
+                // Car status stats
+                const totalCars = data.cars.reduce((sum, car) => sum + parseInt(car.count), 0);
+                statsHTML += `
+                    <div class="stat-card">
+                        <div class="stat-value">${totalCars}</div>
+                        <div class="stat-label">Total Cars</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${data.activeRentals}</div>
+                        <div class="stat-label">Active Rentals</div>
+                    </div>
+                `;
+
+                document.getElementById('statsGrid').innerHTML = statsHTML;
+
+            } catch (error) {
+                console.error('Dashboard load error:', error);
+            }
+        }
+
+        // Cars functions
+        async function loadCars() {
+            try {
+                const response = await apiCall('/api/cars');
+                if (!response) return;
+
+                allCars = await response.json();
+                filteredCars = [...allCars];
+                displayCars();
+            } catch (error) {
+                console.error('Cars load error:', error);
+            }
+        }
+
+        function displayCars() {
+            let carsHTML = '';
+
+            filteredCars.forEach(car => {
+                const statusClass = `status-${car.status}`;
+                carsHTML += `
+                    <div class="car-card" onclick="showCarDetails(${car.id})">
+                        <div class="car-header">
+                            <div class="car-title">${car.brand} ${car.model} ${car.year}</div>
+                            <div class="car-status ${statusClass}">${car.status.toUpperCase()}</div>
+                        </div>
+                        <div style="color: #ccc;">
+                            <div>VIN: ${car.vin || 'N/A'}</div>
+                            <div>Price: ${getCurrencySymbol(car.currency)}${car.price}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('carsGrid').innerHTML = carsHTML;
+        }
+
+        function searchCars() {
+            const searchTerm = document.getElementById('carSearch').value.toLowerCase();
+            const statusFilter = document.getElementById('carStatusFilter').value;
+
+            filteredCars = allCars.filter(car => {
+                const matchesSearch = !searchTerm || 
+                    car.brand.toLowerCase().includes(searchTerm) ||
+                    car.model.toLowerCase().includes(searchTerm) ||
+                    (car.vin && car.vin.toLowerCase().includes(searchTerm)) ||
+                    car.year.toString().includes(searchTerm);
+                
+                const matchesStatus = !statusFilter || car.status === statusFilter;
+
+                return matchesSearch && matchesStatus;
+            });
+
+            displayCars();
+        }
+
+        function filterCars() {
+            searchCars(); // Reuse search function as it handles both search and filter
+        }
+
+        function getCurrencySymbol(currency) {
+            const symbols = { USD: '$', EUR: '€', GEL: '₾' };
+            return symbols[currency] || currency;
+        }
+
+        function showAddCarModal() {
+            document.getElementById('addCarModal').style.display = 'block';
+        }
+
+        async function addCar() {
+            const carData = {
+                brand: document.getElementById('carBrand').value,
+                model: document.getElementById('carModel').value,
+                year: parseInt(document.getElementById('carYear').value),
+                vin: document.getElementById('carVin').value,
+                price: parseFloat(document.getElementById('carPrice').value),
+                currency: document.getElementById('carCurrency').value
+            };
+
+            try {
+                const response = await apiCall('/api/cars', {
+                    method: 'POST',
+                    body: JSON.stringify(carData)
+                });
+
+                if (response && response.ok) {
+                    closeModal('addCarModal');
+                    loadCars();
+                    // Clear form
+                    document.getElementById('carBrand').value = '';
+                    document.getElementById('carModel').value = '';
+                    document.getElementById('carYear').value = '';
+                    document.getElementById('carVin').value = '';
+                    document.getElementById('carPrice').value = '';
+                } else {
+                    alert('Failed to add car');
+                }
+            } catch (error) {
+                alert('Error adding car: ' + error.message);
+            }
+        }
+
+        async function showCarDetails(carId) {
+            currentCarId = carId;
+            
+            try {
+                const response = await apiCall(`/api/cars/${carId}/details`);
+                if (!response) return;
+
+                const data = await response.json();
+                const car = data.car;
+
+                document.getElementById('carDetailsTitle').textContent = `${car.brand} ${car.model} ${car.year}`;
+                
+                // Car info tab
+                const carInfoHTML = `
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+                        <div>
+                            <strong>Brand:</strong> ${car.brand}<br>
+                            <strong>Model:</strong> ${car.model}<br>
+                            <strong>Year:</strong> ${car.year}<br>
+                            <strong>VIN:</strong> ${car.vin || 'N/A'}
+                        </div>
+                        <div>
+                            <strong>Purchase Price:</strong> ${getCurrencySymbol(car.currency)}${car.price}<br>
+                            <strong>Status:</strong> ${car.status.toUpperCase()}<br>
+                            <strong>Added:</strong> ${new Date(car.created_at).toLocaleDateString()}
+                        </div>
+                    </div>
+                `;
+                document.getElementById('carInfo
