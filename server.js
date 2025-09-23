@@ -84,8 +84,14 @@ async function initDB() {
         car_id INTEGER REFERENCES cars(id),
         user_id INTEGER REFERENCES users(id),
         name VARCHAR(200) NOT NULL,
-        price DECIMAL(10,2),
+        estimated_price DECIMAL(10,2),
         currency VARCHAR(3),
+        cost_basis DECIMAL(10,2),
+        car_currency VARCHAR(3),
+        sale_price DECIMAL(10,2),
+        sale_currency VARCHAR(3),
+        buyer VARCHAR(200),
+        sale_notes TEXT,
         status VARCHAR(20) DEFAULT 'available',
         storage_location VARCHAR(100),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -256,14 +262,14 @@ app.get('/api/cars', authenticateToken, async (req, res) => {
     // Add search filter
     if (search) {
       paramCount++;
-      query += ` AND (LOWER(brand) LIKE $${paramCount} OR LOWER(model) LIKE $${paramCount} OR LOWER(vin) LIKE $${paramCount} OR CAST(year AS TEXT) LIKE $${paramCount})`;
+      query += ` AND (LOWER(brand) LIKE ${paramCount} OR LOWER(model) LIKE ${paramCount} OR LOWER(vin) LIKE ${paramCount} OR CAST(year AS TEXT) LIKE ${paramCount})`;
       params.push(`%${search.toLowerCase()}%`);
     }
 
     // Add status filter
     if (status) {
       paramCount++;
-      query += ` AND status = $${paramCount}`;
+      query += ` AND status = ${paramCount}`;
       params.push(status);
     }
 
@@ -297,21 +303,21 @@ app.get('/api/parts', authenticateToken, async (req, res) => {
     // Add search filter
     if (search) {
       paramCount++;
-      query += ` AND (LOWER(p.name) LIKE $${paramCount} OR LOWER(c.brand) LIKE $${paramCount} OR LOWER(c.model) LIKE $${paramCount} OR LOWER(p.storage_location) LIKE $${paramCount})`;
+      query += ` AND (LOWER(p.name) LIKE ${paramCount} OR LOWER(c.brand) LIKE ${paramCount} OR LOWER(c.model) LIKE ${paramCount} OR LOWER(p.storage_location) LIKE ${paramCount})`;
       params.push(`%${search.toLowerCase()}%`);
     }
 
     // Add status filter
     if (status) {
       paramCount++;
-      query += ` AND p.status = $${paramCount}`;
+      query += ` AND p.status = ${paramCount}`;
       params.push(status);
     }
 
     // Add currency filter
     if (currency) {
       paramCount++;
-      query += ` AND p.currency = $${paramCount}`;
+      query += ` AND p.currency = ${paramCount}`;
       params.push(currency);
     }
 
