@@ -615,7 +615,8 @@
                         <tr>
                             <th>Name</th>
                             <th>Source Car</th>
-                            <th>Price</th>
+                            <th>Cost Basis</th>
+                            <th>Sale Price</th>
                             <th>Location</th>
                             <th>Status</th>
                             <th>Actions</th>
@@ -829,7 +830,37 @@
         </div>
     </div>
 
-    <!-- Add Part Modal -->
+    <!-- Sell Part Modal -->
+    <div id="sellPartModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('sellPartModal')">&times;</span>
+            <h2 id="sellPartTitle">Sell Part</h2>
+            <div id="sellPartInfo" style="margin-bottom: 20px; padding: 15px; background: #3d3d3d; border-radius: 8px;">
+                <!-- Part info will be displayed here -->
+            </div>
+            <div class="form-group">
+                <label>Sale Price</label>
+                <input type="number" id="sellPartPrice" step="0.01" required placeholder="Enter sale price">
+            </div>
+            <div class="form-group">
+                <label>Currency</label>
+                <select id="sellPartCurrency" required>
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="GEL">GEL (₾)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Buyer (optional)</label>
+                <input type="text" id="sellPartBuyer" placeholder="Buyer name or company">
+            </div>
+            <div class="form-group">
+                <label>Notes (optional)</label>
+                <input type="text" id="sellPartNotes" placeholder="Additional notes">
+            </div>
+            <button class="btn" onclick="confirmSellPart()">Sell Part</button>
+        </div>
+    </div>
     <div id="addPartModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal('addPartModal')">&times;</span>
@@ -842,15 +873,15 @@
             </div>
             <div class="form-group">
                 <label>Part Name</label>
-                <input type="text" id="partName" required>
+                <input type="text" id="partName" required placeholder="e.g., Engine, Transmission, Headlight">
             </div>
             <div class="form-group">
-                <label>Sale Price</label>
-                <input type="number" id="partPrice" step="0.01" required>
+                <label>Estimated Value (optional)</label>
+                <input type="number" id="partPrice" step="0.01" placeholder="Estimated market value">
             </div>
             <div class="form-group">
                 <label>Currency</label>
-                <select id="partCurrency" required>
+                <select id="partCurrency">
                     <option value="USD">USD ($)</option>
                     <option value="EUR">EUR (€)</option>
                     <option value="GEL">GEL (₾)</option>
@@ -1031,7 +1062,7 @@
                 
                 // Income cards
                 const currencies = ['USD', 'EUR', 'GEL'];
-                const currencySymbols = { USD: '$', EUR: '€', GEL: '₾' };
+                const currencySymbols = { USD: ', EUR: '€', GEL: '₾' };
                 
                 currencies.forEach(currency => {
                     const income = data.income.find(i => i.currency === currency);
@@ -1132,7 +1163,7 @@
         }
 
         function getCurrencySymbol(currency) {
-            const symbols = { USD: '$', EUR: '€', GEL: '₾' };
+            const symbols = { USD: ', EUR: '€', GEL: '₾' };
             return symbols[currency] || currency;
         }
 
