@@ -596,7 +596,8 @@ app.get('/api/rentals/calendar/:year/:month', authenticateToken, async (req, res
 });
 
 // PARTS ROUTES - moved above, integrated with searchd = c.id 
-       ORDER BY p.created_at DESC`;
+       ORDER BY p.created_at DESC
+   `;
     const params = userId ? [userId] : [];
 
     const result = await pool.query(query, params);
