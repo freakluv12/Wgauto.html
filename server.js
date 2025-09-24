@@ -200,7 +200,6 @@ app.get('/api/stats/dashboard', authenticateToken, async (req, res) => {
     const userFilter = userId ? 'AND user_id = $1' : '';
     const params = userId ? [userId] : [];
 
-    // Income by currency
     const incomeQuery = `
       SELECT currency, SUM(amount) as total 
       FROM transactions 
@@ -209,7 +208,6 @@ app.get('/api/stats/dashboard', authenticateToken, async (req, res) => {
     `;
     const income = await pool.query(incomeQuery, params);
 
-    // Expenses by currency
     const expenseQuery = `
       SELECT currency, SUM(amount) as total 
       FROM transactions 
@@ -218,7 +216,6 @@ app.get('/api/stats/dashboard', authenticateToken, async (req, res) => {
     `;
     const expenses = await pool.query(expenseQuery, params);
 
-    // Car counts
     const carsQuery = `
       SELECT status, COUNT(*) as count 
       FROM cars 
@@ -227,7 +224,6 @@ app.get('/api/stats/dashboard', authenticateToken, async (req, res) => {
     `;
     const cars = await pool.query(carsQuery, params);
 
-    // Active rentals
     const activeRentalsQuery = `
       SELECT COUNT(*) as count 
       FROM rentals 
@@ -259,17 +255,15 @@ app.get('/api/cars', authenticateToken, async (req, res) => {
     let params = userId ? [userId] : [];
     let paramCount = params.length;
 
-    // Add search filter
     if (search) {
       paramCount++;
-      query += ` AND (LOWER(brand) LIKE ${paramCount} OR LOWER(model) LIKE ${paramCount} OR LOWER(vin) LIKE ${paramCount} OR CAST(year AS TEXT) LIKE ${paramCount})`;
+      query += ` AND (LOWER(brand) LIKE $${paramCount} OR LOWER(model) LIKE $${paramCount} OR LOWER(vin) LIKE $${paramCount} OR CAST(year AS TEXT) LIKE $${paramCount})`;
       params.push(`%${search.toLowerCase()}%`);
     }
 
-    // Add status filter
     if (status) {
       paramCount++;
-      query += ` AND status = ${paramCount}`;
+      query += ` AND status = $${paramCount}`;
       params.push(status);
     }
 
@@ -280,54 +274,6 @@ app.get('/api/cars', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Get cars error:', error);
     res.status(500).json({ error: 'Failed to fetch cars' });
-  }
-});
-
-app.get('/api/parts', authenticateToken, async (req, res) => {
-  try {
-    const userId = req.user.role === 'ADMIN' ? null : req.user.id;
-    const { search, status, currency } = req.query;
-    
-    let query = userId ? 
-      `SELECT p.*, c.brand, c.model, c.year 
-       FROM parts p 
-       JOIN cars c ON p.car_id = c.id 
-       WHERE p.user_id = $1` :
-      `SELECT p.*, c.brand, c.model, c.year 
-       FROM parts p 
-       JOIN cars c ON p.car_id = c.id 
-       WHERE 1=1`;
-    let params = userId ? [userId] : [];
-    let paramCount = params.length;
-
-    // Add search filter
-    if (search) {
-      paramCount++;
-      query += ` AND (LOWER(p.name) LIKE ${paramCount} OR LOWER(c.brand) LIKE ${paramCount} OR LOWER(c.model) LIKE ${paramCount} OR LOWER(p.storage_location) LIKE ${paramCount})`;
-      params.push(`%${search.toLowerCase()}%`);
-    }
-
-    // Add status filter
-    if (status) {
-      paramCount++;
-      query += ` AND p.status = ${paramCount}`;
-      params.push(status);
-    }
-
-    // Add currency filter
-    if (currency) {
-      paramCount++;
-      query += ` AND p.currency = ${paramCount}`;
-      params.push(currency);
-    }
-
-    query += ' ORDER BY p.created_at DESC';
-
-    const result = await pool.query(query, params);
-    res.json(result.rows);
-  } catch (error) {
-    console.error('Get parts error:', error);
-    res.status(500).json({ error: 'Failed to fetch parts' });
   }
 });
 
@@ -352,7 +298,6 @@ app.get('/api/cars/:id/details', authenticateToken, async (req, res) => {
     const carId = req.params.id;
     const userId = req.user.role === 'ADMIN' ? null : req.user.id;
     
-    // Get car info
     const carQuery = userId ? 
       'SELECT * FROM cars WHERE id = $1 AND user_id = $2' :
       'SELECT * FROM cars WHERE id = $1';
@@ -363,7 +308,6 @@ app.get('/api/cars/:id/details', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Car not found' });
     }
 
-    // Get transactions
     const transactionsQuery = `
       SELECT t.*, 'transaction' as source_type 
       FROM transactions t 
@@ -372,7 +316,6 @@ app.get('/api/cars/:id/details', authenticateToken, async (req, res) => {
     `;
     const transactions = await pool.query(transactionsQuery, [carId]);
 
-    // Get rentals
     const rentalsQuery = `
       SELECT * FROM rentals 
       WHERE car_id = $1 
@@ -380,7 +323,6 @@ app.get('/api/cars/:id/details', authenticateToken, async (req, res) => {
     `;
     const rentals = await pool.query(rentalsQuery, [carId]);
 
-    // Get parts from this car
     const partsQuery = `
       SELECT * FROM parts 
       WHERE car_id = $1 
@@ -388,7 +330,6 @@ app.get('/api/cars/:id/details', authenticateToken, async (req, res) => {
     `;
     const parts = await pool.query(partsQuery, [carId]);
 
-    // Calculate profitability
     const profitQuery = `
       SELECT 
         currency,
@@ -418,18 +359,15 @@ app.post('/api/cars/:id/expense', authenticateToken, async (req, res) => {
     const { amount, currency, description, category } = req.body;
     const carId = req.params.id;
 
-    // Validate required fields
     if (!amount || !currency || !category) {
       return res.status(400).json({ error: 'Amount, currency, and category are required' });
     }
 
-    // Validate category
     const validCategories = ['repair', 'fuel', 'insurance', 'maintenance', 'parking', 'wash', 'parts', 'other'];
     if (!validCategories.includes(category)) {
       return res.status(400).json({ error: 'Invalid category' });
     }
 
-    // Check if car exists and user has permission
     const userId = req.user.role === 'ADMIN' ? null : req.user.id;
     const carQuery = userId ? 
       'SELECT id FROM cars WHERE id = $1 AND user_id = $2' :
@@ -493,7 +431,6 @@ app.post('/api/rentals', authenticateToken, async (req, res) => {
   try {
     const { car_id, client_name, client_phone, start_date, end_date, daily_price, currency } = req.body;
     
-    // Calculate total amount
     const startDate = new Date(start_date);
     const endDate = new Date(end_date);
     const days = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
@@ -505,7 +442,6 @@ app.post('/api/rentals', authenticateToken, async (req, res) => {
       [car_id, req.user.id, client_name, client_phone, start_date, end_date, daily_price, currency, total_amount]
     );
 
-    // Update car status to rented
     await pool.query('UPDATE cars SET status = $1 WHERE id = $2', ['rented', car_id]);
 
     res.json(result.rows[0]);
@@ -519,7 +455,6 @@ app.post('/api/rentals/:id/complete', authenticateToken, async (req, res) => {
   try {
     const rentalId = req.params.id;
 
-    // Get rental details
     const rental = await pool.query('SELECT * FROM rentals WHERE id = $1', [rentalId]);
     if (rental.rows.length === 0) {
       return res.status(404).json({ error: 'Rental not found' });
@@ -527,13 +462,11 @@ app.post('/api/rentals/:id/complete', authenticateToken, async (req, res) => {
 
     const rentalData = rental.rows[0];
 
-    // Update rental status
     await pool.query(
       'UPDATE rentals SET status = $1, completed_at = CURRENT_TIMESTAMP WHERE id = $2',
       ['completed', rentalId]
     );
 
-    // Create income transaction
     await pool.query(
       `INSERT INTO transactions (car_id, user_id, type, amount, currency, category, description, rental_id) 
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
@@ -549,7 +482,6 @@ app.post('/api/rentals/:id/complete', authenticateToken, async (req, res) => {
       ]
     );
 
-    // Update car status back to active
     await pool.query('UPDATE cars SET status = $1 WHERE id = $2', ['active', rentalData.car_id]);
 
     res.json({ success: true });
@@ -559,7 +491,6 @@ app.post('/api/rentals/:id/complete', authenticateToken, async (req, res) => {
   }
 });
 
-// Get calendar data for a specific month
 app.get('/api/rentals/calendar/:year/:month', authenticateToken, async (req, res) => {
   try {
     const { year, month } = req.params;
@@ -595,10 +526,43 @@ app.get('/api/rentals/calendar/:year/:month', authenticateToken, async (req, res
   }
 });
 
-// PARTS ROUTES - moved above, integrated with searchd = c.id 
-       ORDER BY p.created_at DESC
-`;
-    const params = userId ? [userId] : [];
+// PARTS ROUTES
+app.get('/api/parts', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.role === 'ADMIN' ? null : req.user.id;
+    const { search, status, currency } = req.query;
+    
+    let query = userId ? 
+      `SELECT p.*, c.brand, c.model, c.year 
+       FROM parts p 
+       JOIN cars c ON p.car_id = c.id 
+       WHERE p.user_id = $1` :
+      `SELECT p.*, c.brand, c.model, c.year 
+       FROM parts p 
+       JOIN cars c ON p.car_id = c.id 
+       WHERE 1=1`;
+    let params = userId ? [userId] : [];
+    let paramCount = params.length;
+
+    if (search) {
+      paramCount++;
+      query += ` AND (LOWER(p.name) LIKE $${paramCount} OR LOWER(c.brand) LIKE $${paramCount} OR LOWER(c.model) LIKE $${paramCount} OR LOWER(p.storage_location) LIKE $${paramCount} OR LOWER(p.buyer) LIKE $${paramCount})`;
+      params.push(`%${search.toLowerCase()}%`);
+    }
+
+    if (status) {
+      paramCount++;
+      query += ` AND p.status = $${paramCount}`;
+      params.push(status);
+    }
+
+    if (currency) {
+      paramCount++;
+      query += ` AND (p.currency = $${paramCount} OR p.sale_currency = $${paramCount})`;
+      params.push(currency);
+    }
+
+    query += ' ORDER BY p.created_at DESC';
 
     const result = await pool.query(query, params);
     res.json(result.rows);
@@ -610,12 +574,46 @@ app.get('/api/rentals/calendar/:year/:month', authenticateToken, async (req, res
 
 app.post('/api/parts', authenticateToken, async (req, res) => {
   try {
-    const { car_id, name, price, currency, storage_location } = req.body;
+    const { car_id, name, estimated_price, currency, storage_location } = req.body;
     
+    if (!car_id || !name) {
+      return res.status(400).json({ error: 'Car ID and name are required' });
+    }
+
+    const userId = req.user.role === 'ADMIN' ? null : req.user.id;
+    const carQuery = userId ? 
+      'SELECT id, status, price, currency FROM cars WHERE id = $1 AND user_id = $2' :
+      'SELECT id, status, price, currency FROM cars WHERE id = $1';
+    const carParams = userId ? [car_id, userId] : [car_id];
+    const carCheck = await pool.query(carQuery, carParams);
+
+    if (carCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Car not found or access denied' });
+    }
+
+    if (carCheck.rows[0].status !== 'dismantled') {
+      return res.status(400).json({ error: 'Car must be dismantled before adding parts' });
+    }
+
+    const car = carCheck.rows[0];
+
+    const existingPartsQuery = 'SELECT COUNT(*) as count FROM parts WHERE car_id = $1';
+    const existingParts = await pool.query(existingPartsQuery, [car_id]);
+    const totalParts = parseInt(existingParts.rows[0].count) + 1;
+    const costBasis = car.price ? (parseFloat(car.price) / totalParts) : null;
+
     const result = await pool.query(
-      'INSERT INTO parts (car_id, user_id, name, price, currency, storage_location) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [car_id, req.user.id, name, price, currency, storage_location]
+      `INSERT INTO parts (car_id, user_id, name, estimated_price, currency, cost_basis, car_currency, storage_location) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [car_id, req.user.id, name, estimated_price || null, currency || 'USD', costBasis, car.currency, storage_location || '']
     );
+
+    if (costBasis) {
+      await pool.query(
+        'UPDATE parts SET cost_basis = $1 WHERE car_id = $2',
+        [costBasis, car_id]
+      );
+    }
 
     res.json(result.rows[0]);
   } catch (error) {
@@ -627,22 +625,45 @@ app.post('/api/parts', authenticateToken, async (req, res) => {
 app.post('/api/parts/:id/sell', authenticateToken, async (req, res) => {
   try {
     const partId = req.params.id;
+    const { sale_price, sale_currency, buyer, notes } = req.body;
 
-    // Get part details
-    const part = await pool.query('SELECT * FROM parts WHERE id = $1', [partId]);
+    if (!sale_price || !sale_currency) {
+      return res.status(400).json({ error: 'Sale price and currency are required' });
+    }
+
+    if (parseFloat(sale_price) <= 0) {
+      return res.status(400).json({ error: 'Sale price must be greater than 0' });
+    }
+
+    const userId = req.user.role === 'ADMIN' ? null : req.user.id;
+    const partQuery = userId ?
+      'SELECT * FROM parts WHERE id = $1 AND user_id = $2' :
+      'SELECT * FROM parts WHERE id = $1';
+    const partParams = userId ? [partId, userId] : [partId];
+    const part = await pool.query(partQuery, partParams);
+
     if (part.rows.length === 0) {
-      return res.status(404).json({ error: 'Part not found' });
+      return res.status(404).json({ error: 'Part not found or access denied' });
     }
 
     const partData = part.rows[0];
 
-    // Update part status
+    if (partData.status === 'sold') {
+      return res.status(400).json({ error: 'Part is already sold' });
+    }
+
     await pool.query(
-      'UPDATE parts SET status = $1, sold_at = CURRENT_TIMESTAMP WHERE id = $2',
-      ['sold', partId]
+      `UPDATE parts SET 
+        status = $1, 
+        sale_price = $2, 
+        sale_currency = $3, 
+        buyer = $4, 
+        sale_notes = $5, 
+        sold_at = CURRENT_TIMESTAMP 
+       WHERE id = $6`,
+      ['sold', sale_price, sale_currency, buyer || null, notes || null, partId]
     );
 
-    // Create income transaction
     await pool.query(
       `INSERT INTO transactions (car_id, user_id, type, amount, currency, category, description, part_id) 
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
@@ -650,15 +671,20 @@ app.post('/api/parts/:id/sell', authenticateToken, async (req, res) => {
         partData.car_id,
         req.user.id,
         'income',
-        partData.price,
-        partData.currency,
+        sale_price,
+        sale_currency,
         'parts',
-        `Part sale: ${partData.name}`,
+        `Part sale: ${partData.name}${buyer ? ` to ${buyer}` : ''}${notes ? ` (${notes})` : ''}`,
         partId
       ]
     );
 
-    res.json({ success: true });
+    res.json({ 
+      success: true, 
+      message: 'Part sold successfully',
+      sale_price: parseFloat(sale_price),
+      sale_currency: sale_currency
+    });
   } catch (error) {
     console.error('Sell part error:', error);
     res.status(500).json({ error: 'Failed to sell part' });
