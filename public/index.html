@@ -435,10 +435,10 @@
                 <div class="form-group">
                     <input type="password" id="loginPassword" placeholder="Password" required>
                 </div>
-                <button class="btn" onclick="login()">Login</button>
+                <button class="btn" onclick="attemptLogin()">Login</button>
                 <p style="margin-top: 15px; color: #ccc;">
                     Don't have an account? 
-                    <a href="#" onclick="showRegister()" style="color: #4CAF50;">Register</a>
+                    <a href="#" onclick="showRegisterForm()" style="color: #4CAF50;">Register</a>
                 </p>
             </div>
 
@@ -450,10 +450,10 @@
                 <div class="form-group">
                     <input type="password" id="registerPassword" placeholder="Password" required>
                 </div>
-                <button class="btn" onclick="register()">Register</button>
+                <button class="btn" onclick="attemptRegister()">Register</button>
                 <p style="margin-top: 15px; color: #ccc;">
                     Already have an account? 
-                    <a href="#" onclick="showLogin()" style="color: #4CAF50;">Login</a>
+                    <a href="#" onclick="showLoginForm()" style="color: #4CAF50;">Login</a>
                 </p>
             </div>
         </div>
@@ -920,24 +920,37 @@
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
 
+            if (!email || !password) {
+                alert('Please enter email and password');
+                return;
+            }
+
             try {
+                console.log('Attempting login...'); // Debug log
+                
                 const response = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
                 });
 
+                console.log('Response status:', response.status); // Debug log
+
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('Login successful:', data); // Debug log
+                    
                     localStorage.setItem('token', data.token);
                     currentUser = data.user;
                     showApp();
                 } else {
                     const error = await response.json();
-                    alert('Login failed: ' + error.error);
+                    console.error('Login error:', error); // Debug log
+                    alert('Login failed: ' + (error.error || 'Unknown error'));
                 }
             } catch (error) {
-                alert('Login error: ' + error.message);
+                console.error('Login fetch error:', error); // Debug log
+                alert('Login error: Cannot connect to server. Please check your internet connection.');
             }
         }
 
@@ -974,6 +987,8 @@
         }
 
         function showApp() {
+            console.log('Showing app for user:', currentUser); // Debug log
+            
             document.getElementById('authScreen').style.display = 'none';
             document.getElementById('appScreen').style.display = 'flex';
             document.getElementById('userEmail').textContent = currentUser.email;
@@ -982,6 +997,7 @@
                 document.getElementById('adminNav').style.display = 'block';
             }
             
+            console.log('Loading dashboard...'); // Debug log
             loadDashboard();
         }
 
